@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 // ======================== TYPES ========================
 
-type Screen = 0 | 1 | 2 | 3;
+type Screen = 0 | 1 | 2 | 3 | 4;
 
 // ======================== HOOKS ========================
 
@@ -39,410 +39,33 @@ function useTypingEffect(text: string, speed = 50, startTyping = false) {
   return { displayedText, isComplete };
 }
 
+// ======================== MUSIC BUTTON ========================
+
+interface MusicButtonProps {
+  isPlaying: boolean;
+  onToggle: () => void;
+  visible: boolean;
+}
+
+function MusicButton({ isPlaying, onToggle, visible }: MusicButtonProps) {
+  if (!visible) return null;
+  return (
+    <button
+      type="button"
+      data-ocid="music.toggle"
+      className="music-btn"
+      onClick={onToggle}
+      aria-label={isPlaying ? "Pause music" : "Play music"}
+      title={isPlaying ? "Pause music" : "Play music"}
+    >
+      {isPlaying ? "🔇" : "🎵"}
+    </button>
+  );
+}
+
 // ======================== BACKGROUND LAYER ========================
 
-interface FloatingHeart {
-  id: number;
-  emoji: string;
-  left: number;
-  size: number;
-  duration: number;
-  delay: number;
-  bottom: number;
-}
-
-interface SparkleDot {
-  id: number;
-  left: number;
-  top: number;
-  size: number;
-  duration: number;
-  delay: number;
-  color: string;
-}
-
-// Parallax heart tiers: far (blurred, tiny, slow), mid (normal), close (large, vivid, fast, glowing)
-interface ParallaxHeart extends FloatingHeart {
-  layer: "far" | "mid" | "close";
-}
-
 function BackgroundLayer() {
-  const hearts: ParallaxHeart[] = [
-    // — FAR layer: small, blurred, slow, low opacity —
-    {
-      id: 101,
-      emoji: "❤️",
-      left: 7,
-      size: 10,
-      duration: 18,
-      delay: 0,
-      bottom: 0,
-      layer: "far",
-    },
-    {
-      id: 102,
-      emoji: "💜",
-      left: 22,
-      size: 9,
-      duration: 22,
-      delay: 2.5,
-      bottom: 15,
-      layer: "far",
-    },
-    {
-      id: 103,
-      emoji: "🩷",
-      left: 37,
-      size: 11,
-      duration: 19,
-      delay: 5,
-      bottom: 5,
-      layer: "far",
-    },
-    {
-      id: 104,
-      emoji: "💕",
-      left: 53,
-      size: 8,
-      duration: 24,
-      delay: 1.2,
-      bottom: 20,
-      layer: "far",
-    },
-    {
-      id: 105,
-      emoji: "❤️",
-      left: 68,
-      size: 10,
-      duration: 20,
-      delay: 7,
-      bottom: 10,
-      layer: "far",
-    },
-    {
-      id: 106,
-      emoji: "💜",
-      left: 84,
-      size: 9,
-      duration: 17,
-      delay: 3.5,
-      bottom: 30,
-      layer: "far",
-    },
-    {
-      id: 107,
-      emoji: "🩷",
-      left: 14,
-      size: 8,
-      duration: 23,
-      delay: 9,
-      bottom: 40,
-      layer: "far",
-    },
-    {
-      id: 108,
-      emoji: "💕",
-      left: 77,
-      size: 11,
-      duration: 21,
-      delay: 4.8,
-      bottom: 8,
-      layer: "far",
-    },
-
-    // — MID layer: medium, soft, natural speed —
-    {
-      id: 201,
-      emoji: "🩷",
-      left: 10,
-      size: 17,
-      duration: 11,
-      delay: 0.5,
-      bottom: 0,
-      layer: "mid",
-    },
-    {
-      id: 202,
-      emoji: "💕",
-      left: 28,
-      size: 19,
-      duration: 13,
-      delay: 3,
-      bottom: 12,
-      layer: "mid",
-    },
-    {
-      id: 203,
-      emoji: "❤️",
-      left: 46,
-      size: 16,
-      duration: 10,
-      delay: 1,
-      bottom: 5,
-      layer: "mid",
-    },
-    {
-      id: 204,
-      emoji: "💜",
-      left: 62,
-      size: 20,
-      duration: 12,
-      delay: 4.5,
-      bottom: 22,
-      layer: "mid",
-    },
-    {
-      id: 205,
-      emoji: "🩷",
-      left: 79,
-      size: 15,
-      duration: 14,
-      delay: 0.8,
-      bottom: 35,
-      layer: "mid",
-    },
-    {
-      id: 206,
-      emoji: "🫶",
-      left: 32,
-      size: 22,
-      duration: 16,
-      delay: 6,
-      bottom: 18,
-      layer: "mid",
-    },
-    {
-      id: 207,
-      emoji: "🫶",
-      left: 68,
-      size: 20,
-      duration: 15,
-      delay: 2.2,
-      bottom: 28,
-      layer: "mid",
-    },
-    {
-      id: 208,
-      emoji: "💕",
-      left: 91,
-      size: 17,
-      duration: 11,
-      delay: 5.5,
-      bottom: 45,
-      layer: "mid",
-    },
-
-    // — CLOSE layer: large, vivid, fast, glowing drop-shadow —
-    {
-      id: 301,
-      emoji: "❤️",
-      left: 4,
-      size: 28,
-      duration: 7,
-      delay: 0,
-      bottom: 0,
-      layer: "close",
-    },
-    {
-      id: 302,
-      emoji: "🩷",
-      left: 18,
-      size: 32,
-      duration: 8,
-      delay: 1.8,
-      bottom: 8,
-      layer: "close",
-    },
-    {
-      id: 303,
-      emoji: "💜",
-      left: 42,
-      size: 26,
-      duration: 6,
-      delay: 3.2,
-      bottom: 20,
-      layer: "close",
-    },
-    {
-      id: 304,
-      emoji: "🫶",
-      left: 60,
-      size: 34,
-      duration: 9,
-      delay: 0.5,
-      bottom: 0,
-      layer: "close",
-    },
-    {
-      id: 305,
-      emoji: "💕",
-      left: 76,
-      size: 29,
-      duration: 7,
-      delay: 4,
-      bottom: 15,
-      layer: "close",
-    },
-    {
-      id: 306,
-      emoji: "❤️",
-      left: 89,
-      size: 24,
-      duration: 8,
-      delay: 2.5,
-      bottom: 30,
-      layer: "close",
-    },
-    {
-      id: 307,
-      emoji: "🫶",
-      left: 50,
-      size: 36,
-      duration: 10,
-      delay: 7,
-      bottom: 42,
-      layer: "close",
-    },
-  ];
-
-  const sparkles: SparkleDot[] = [
-    {
-      id: 1,
-      left: 10,
-      top: 20,
-      size: 4,
-      duration: 2,
-      delay: 0,
-      color: "rgba(249,168,212,0.7)",
-    },
-    {
-      id: 2,
-      left: 20,
-      top: 35,
-      size: 3,
-      duration: 2.5,
-      delay: 0.3,
-      color: "rgba(196,181,253,0.8)",
-    },
-    {
-      id: 3,
-      left: 30,
-      top: 15,
-      size: 5,
-      duration: 1.8,
-      delay: 0.7,
-      color: "rgba(255,255,255,0.6)",
-    },
-    {
-      id: 4,
-      left: 45,
-      top: 60,
-      size: 3,
-      duration: 2.2,
-      delay: 1,
-      color: "rgba(249,168,212,0.9)",
-    },
-    {
-      id: 5,
-      left: 55,
-      top: 25,
-      size: 4,
-      duration: 3,
-      delay: 0.5,
-      color: "rgba(196,181,253,0.7)",
-    },
-    {
-      id: 6,
-      left: 65,
-      top: 75,
-      size: 6,
-      duration: 2,
-      delay: 1.4,
-      color: "rgba(255,255,255,0.5)",
-    },
-    {
-      id: 7,
-      left: 75,
-      top: 40,
-      size: 3,
-      duration: 2.5,
-      delay: 0.2,
-      color: "rgba(249,168,212,0.8)",
-    },
-    {
-      id: 8,
-      left: 85,
-      top: 55,
-      size: 5,
-      duration: 1.9,
-      delay: 0.9,
-      color: "rgba(196,181,253,0.6)",
-    },
-    {
-      id: 9,
-      left: 90,
-      top: 10,
-      size: 4,
-      duration: 2.8,
-      delay: 1.6,
-      color: "rgba(255,255,255,0.7)",
-    },
-    {
-      id: 10,
-      left: 5,
-      top: 70,
-      size: 3,
-      duration: 2.1,
-      delay: 0.4,
-      color: "rgba(249,168,212,0.6)",
-    },
-    {
-      id: 11,
-      left: 38,
-      top: 85,
-      size: 5,
-      duration: 2.4,
-      delay: 1.2,
-      color: "rgba(196,181,253,0.8)",
-    },
-    {
-      id: 12,
-      left: 52,
-      top: 45,
-      size: 4,
-      duration: 2,
-      delay: 0.6,
-      color: "rgba(255,255,255,0.6)",
-    },
-    {
-      id: 13,
-      left: 70,
-      top: 90,
-      size: 3,
-      duration: 3,
-      delay: 2,
-      color: "rgba(249,168,212,0.7)",
-    },
-    {
-      id: 14,
-      left: 25,
-      top: 50,
-      size: 6,
-      duration: 2.2,
-      delay: 0.8,
-      color: "rgba(236,72,153,0.5)",
-    },
-    {
-      id: 15,
-      left: 95,
-      top: 30,
-      size: 4,
-      duration: 1.7,
-      delay: 1.5,
-      color: "rgba(196,181,253,0.7)",
-    },
-  ];
-
   return (
     <div
       aria-hidden="true"
@@ -455,85 +78,7 @@ function BackgroundLayer() {
       }}
     >
       {/* Animated gradient base */}
-      <div
-        className="animated-bg"
-        style={{
-          position: "absolute",
-          inset: 0,
-        }}
-      />
-
-      {/* Radial overlay for depth */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background:
-            "radial-gradient(ellipse 80% 60% at 50% 40%, rgba(168,85,247,0.15) 0%, transparent 70%)",
-        }}
-      />
-
-      {/* Conic light rays */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background:
-            "conic-gradient(from 0deg at 50% 50%, transparent 0deg, rgba(249,168,212,0.04) 30deg, transparent 60deg, rgba(196,181,253,0.04) 90deg, transparent 120deg, rgba(249,168,212,0.03) 150deg, transparent 180deg, rgba(196,181,253,0.04) 210deg, transparent 240deg, rgba(249,168,212,0.03) 270deg, transparent 300deg, rgba(196,181,253,0.04) 330deg, transparent 360deg)",
-          opacity: 0.7,
-        }}
-      />
-
-      {/* Floating hearts — three parallax depth layers */}
-      {hearts.map((heart) => {
-        const layerClass =
-          heart.layer === "far"
-            ? "float-heart-far"
-            : heart.layer === "close"
-              ? "float-heart-close"
-              : "float-heart-mid";
-        return (
-          <div
-            key={heart.id}
-            className={layerClass}
-            style={
-              {
-                position: "absolute",
-                left: `${heart.left}%`,
-                bottom: `${heart.bottom}%`,
-                fontSize: `${heart.size}px`,
-                "--duration": `${heart.duration}s`,
-                "--delay": `${heart.delay}s`,
-                lineHeight: 1,
-              } as React.CSSProperties
-            }
-          >
-            {heart.emoji}
-          </div>
-        );
-      })}
-
-      {/* Sparkle dots */}
-      {sparkles.map((s) => (
-        <div
-          key={s.id}
-          className="sparkle-dot"
-          style={
-            {
-              position: "absolute",
-              left: `${s.left}%`,
-              top: `${s.top}%`,
-              width: `${s.size}px`,
-              height: `${s.size}px`,
-              borderRadius: "50%",
-              background: s.color,
-              boxShadow: `0 0 ${s.size * 2}px ${s.color}`,
-              "--duration": `${s.duration}s`,
-              "--delay": `${s.delay}s`,
-            } as React.CSSProperties
-          }
-        />
-      ))}
+      <div className="animated-bg" style={{ position: "absolute", inset: 0 }} />
     </div>
   );
 }
@@ -571,7 +116,6 @@ function Screen0({ onNext }: Screen0Props) {
           gap: "1.5rem",
         }}
       >
-        {/* Decorative top hearts */}
         <div style={{ fontSize: "2rem", display: "flex", gap: "0.5rem" }}>
           <span
             className="float-gentle"
@@ -593,7 +137,6 @@ function Screen0({ onNext }: Screen0Props) {
           </span>
         </div>
 
-        {/* Main title */}
         <h1
           className="font-playfair text-glow-pink"
           style={{
@@ -607,7 +150,6 @@ function Screen0({ onNext }: Screen0Props) {
           Haaramma
         </h1>
 
-        {/* Decorative divider */}
         <div
           style={{
             width: "80px",
@@ -618,7 +160,6 @@ function Screen0({ onNext }: Screen0Props) {
           }}
         />
 
-        {/* Subtitle */}
         <p
           className="font-inter text-glow-soft"
           style={{
@@ -632,7 +173,6 @@ function Screen0({ onNext }: Screen0Props) {
           A special journey, just for you 💕
         </p>
 
-        {/* CTA Button */}
         <button
           type="button"
           data-ocid="opening.primary_button"
@@ -644,14 +184,12 @@ function Screen0({ onNext }: Screen0Props) {
             fontWeight: 600,
             letterSpacing: "0.03em",
             marginTop: "0.5rem",
-            transition: "transform 0.2s ease, box-shadow 0.2s ease",
           }}
           aria-label="Begin the special journey for Haaramma"
         >
           Click here, my dear Haaramma ❤️
         </button>
 
-        {/* Bottom note */}
         <p
           className="font-inter"
           style={{
@@ -684,10 +222,9 @@ you are the most special person in my life.`;
 function Screen1({ onNext, isVisible }: Screen1Props) {
   const { displayedText, isComplete } = useTypingEffect(
     EMOTIONAL_MESSAGE,
-    50,
+    48,
     isVisible,
   );
-
   const lines = displayedText.split("\n");
 
   return (
@@ -703,52 +240,6 @@ function Screen1({ onNext, isVisible }: Screen1Props) {
         zIndex: 10,
       }}
     >
-      {/* Extra floating hands behind card */}
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          inset: 0,
-          pointerEvents: "none",
-          overflow: "hidden",
-        }}
-      >
-        {[
-          { left: "8%", bottom: "20%", size: 32, delay: "0s", duration: "15s" },
-          {
-            left: "85%",
-            bottom: "30%",
-            size: 28,
-            delay: "3s",
-            duration: "12s",
-          },
-          {
-            left: "50%",
-            bottom: "10%",
-            size: 36,
-            delay: "6s",
-            duration: "18s",
-          },
-        ].map((h) => (
-          <div
-            key={`hand-${h.left}-${h.bottom}`}
-            className="float-heart-slow"
-            style={
-              {
-                position: "absolute",
-                left: h.left,
-                bottom: h.bottom,
-                fontSize: `${h.size}px`,
-                "--delay": h.delay,
-                "--duration": h.duration,
-              } as React.CSSProperties
-            }
-          >
-            🫶
-          </div>
-        ))}
-      </div>
-
       <div
         className="glass-card-glow"
         style={{
@@ -762,12 +253,10 @@ function Screen1({ onNext, isVisible }: Screen1Props) {
           gap: "2rem",
         }}
       >
-        {/* Icon */}
         <div className="float-gentle" style={{ fontSize: "2.5rem" }}>
           💌
         </div>
 
-        {/* Typed message */}
         <div
           style={{
             minHeight: "160px",
@@ -790,7 +279,7 @@ function Screen1({ onNext, isVisible }: Screen1Props) {
             }}
           >
             {lines.map((line, i) => (
-              // biome-ignore lint/suspicious/noArrayIndexKey: line order is stable
+              // biome-ignore lint/suspicious/noArrayIndexKey: stable order
               <span key={i}>
                 {line}
                 {i < lines.length - 1 && <br />}
@@ -799,7 +288,6 @@ function Screen1({ onNext, isVisible }: Screen1Props) {
           </p>
         </div>
 
-        {/* CTA button — shown after typing completes */}
         {isComplete && (
           <div
             style={{
@@ -825,7 +313,6 @@ function Screen1({ onNext, isVisible }: Screen1Props) {
                 fontSize: "clamp(0.95rem, 2.5vw, 1.1rem)",
                 fontWeight: 600,
                 letterSpacing: "0.03em",
-                transition: "transform 0.2s ease",
               }}
               aria-label="Start memory journey"
             >
@@ -851,11 +338,39 @@ const QUESTIONS = [
   "Naaaku Naa chelle prapancham anthe mari nenu neeku raa Bangaaru thalli 💛",
 ];
 
+interface QuestionAnswerProps {
+  questionIndex: number;
+  value: string;
+  onChange: (val: string) => void;
+}
+
+function QuestionAnswer({
+  questionIndex,
+  value,
+  onChange,
+}: QuestionAnswerProps) {
+  return (
+    <textarea
+      data-ocid={`question.textarea.${questionIndex + 1}`}
+      className="answer-input"
+      rows={3}
+      placeholder="Write your answer here... 💕"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      style={{ minHeight: "80px" }}
+    />
+  );
+}
+
 interface QuestionCardProps {
   question: string;
   index: number;
   total: number;
   animClass: string;
+  answer: string;
+  onAnswerChange: (val: string) => void;
+  onNext: () => void;
+  isTransitioning: boolean;
 }
 
 function QuestionCard({
@@ -863,18 +378,11 @@ function QuestionCard({
   index,
   total,
   animClass,
+  answer,
+  onAnswerChange,
+  onNext,
+  isTransitioning,
 }: QuestionCardProps) {
-  const localHearts = [
-    { emoji: "❤️", left: "5%", top: "20%", size: 20, dur: 7, del: 0 },
-    { emoji: "🩷", left: "90%", top: "15%", size: 16, dur: 9, del: 1 },
-    { emoji: "💜", left: "3%", top: "70%", size: 18, dur: 8, del: 0.5 },
-    { emoji: "💕", left: "92%", top: "65%", size: 22, dur: 6, del: 2 },
-    { emoji: "❤️", left: "50%", top: "5%", size: 14, dur: 10, del: 1.5 },
-    { emoji: "🩷", left: "20%", top: "90%", size: 18, dur: 7, del: 0.8 },
-    { emoji: "💜", left: "75%", top: "85%", size: 20, dur: 9, del: 3 },
-    { emoji: "💕", left: "45%", top: "88%", size: 16, dur: 8, del: 1.2 },
-  ];
-
   return (
     <div
       className={animClass}
@@ -884,45 +392,23 @@ function QuestionCard({
         justifyContent: "center",
         width: "100%",
         minHeight: "100vh",
-        padding: "1.5rem",
+        padding: "1.5rem 1.5rem 8rem",
         position: "absolute",
         top: 0,
         left: 0,
       }}
     >
-      {/* Local floating hearts */}
-      {localHearts.map((h) => (
-        <div
-          key={`q-heart-${h.left}-${h.top}`}
-          aria-hidden="true"
-          className="float-heart"
-          style={
-            {
-              position: "absolute",
-              left: h.left,
-              top: h.top,
-              fontSize: `${h.size}px`,
-              "--duration": `${h.dur}s`,
-              "--delay": `${h.del}s`,
-              pointerEvents: "none",
-            } as React.CSSProperties
-          }
-        >
-          {h.emoji}
-        </div>
-      ))}
-
       <div
         className="glass-card-glow"
         style={{
           maxWidth: 640,
           width: "100%",
-          padding: "3rem 2.5rem",
+          padding: "2.5rem 2rem",
           textAlign: "center",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          gap: "2rem",
+          gap: "1.5rem",
           position: "relative",
         }}
       >
@@ -967,27 +453,28 @@ function QuestionCard({
         </div>
 
         {/* Question text */}
-        <div
+        <p
+          className="font-playfair text-glow-pink"
           style={{
-            flex: 1,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            minHeight: "120px",
+            fontSize: "clamp(1.1rem, 3.5vw, 1.45rem)",
+            color: "#fce7f3",
+            lineHeight: 1.7,
+            fontStyle: "italic",
+            letterSpacing: "0.01em",
           }}
         >
-          <p
-            className="font-playfair text-glow-pink"
-            style={{
-              fontSize: "clamp(1.15rem, 3.5vw, 1.55rem)",
-              color: "#fce7f3",
-              lineHeight: 1.7,
-              fontStyle: "italic",
-              letterSpacing: "0.01em",
-            }}
-          >
-            {question}
-          </p>
+          {question}
+        </p>
+
+        {/* Answer area */}
+        <div
+          style={{ width: "100%", animation: "fade-in 0.5s ease 0.2s both" }}
+        >
+          <QuestionAnswer
+            questionIndex={index}
+            value={answer}
+            onChange={onAnswerChange}
+          />
         </div>
 
         {/* Progress dots */}
@@ -1014,13 +501,33 @@ function QuestionCard({
             ),
           )}
         </div>
+
+        {/* Next / Finish button inside card on mobile */}
+        <button
+          type="button"
+          data-ocid="question.primary_button"
+          className="btn-glow"
+          onClick={onNext}
+          disabled={isTransitioning}
+          style={{
+            padding: "0.85rem 2.2rem",
+            fontSize: "1rem",
+            fontWeight: 600,
+            letterSpacing: "0.04em",
+            opacity: isTransitioning ? 0.7 : 1,
+            marginTop: "0.25rem",
+          }}
+          aria-label={index === total - 1 ? "Finish journey" : "Next question"}
+        >
+          {index === total - 1 ? "Finish 💕" : "Next ➡️"}
+        </button>
       </div>
     </div>
   );
 }
 
 interface Screen2Props {
-  onFinish: () => void;
+  onFinish: (answers: string[]) => void;
 }
 
 function Screen2({ onFinish }: Screen2Props) {
@@ -1028,12 +535,26 @@ function Screen2({ onFinish }: Screen2Props) {
   const [animClass, setAnimClass] = useState("slide-in-right");
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [showCard, setShowCard] = useState(true);
+  const [answers, setAnswers] = useState<string[]>(
+    Array(QUESTIONS.length).fill(""),
+  );
+
+  const handleAnswerChange = useCallback(
+    (val: string) => {
+      setAnswers((prev) => {
+        const next = [...prev];
+        next[questionIndex] = val;
+        return next;
+      });
+    },
+    [questionIndex],
+  );
 
   const handleNext = useCallback(() => {
     if (isTransitioning) return;
 
     if (questionIndex === QUESTIONS.length - 1) {
-      onFinish();
+      onFinish(answers);
       return;
     }
 
@@ -1051,8 +572,8 @@ function Screen2({ onFinish }: Screen2Props) {
           setIsTransitioning(false);
         });
       });
-    }, 400);
-  }, [isTransitioning, questionIndex, onFinish]);
+    }, 350);
+  }, [isTransitioning, questionIndex, onFinish, answers]);
 
   return (
     <div
@@ -1069,41 +590,180 @@ function Screen2({ onFinish }: Screen2Props) {
           index={questionIndex}
           total={QUESTIONS.length}
           animClass={animClass}
+          answer={answers[questionIndex]}
+          onAnswerChange={handleAnswerChange}
+          onNext={handleNext}
+          isTransitioning={isTransitioning}
         />
       )}
+    </div>
+  );
+}
 
-      {/* Fixed Next/Finish button */}
+// ======================== SCREEN 4 — FORMSPREE SUBMISSION ========================
+
+interface Screen4Props {
+  answers: string[];
+  onSuccess: () => void;
+}
+
+function Screen4({ answers, onSuccess }: Screen4Props) {
+  const [status, setStatus] = useState<
+    "idle" | "submitting" | "success" | "error"
+  >("idle");
+
+  useEffect(() => {
+    // Auto-submit on mount
+    const submit = async () => {
+      setStatus("submitting");
+      try {
+        const formData: Record<string, string> = {};
+        QUESTIONS.forEach((q, i) => {
+          formData[`Question ${i + 1}: ${q}`] = answers[i] || "(no answer)";
+        });
+
+        const res = await fetch("https://formspree.io/f/xvzwpygp", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify(formData),
+        });
+
+        if (res.ok) {
+          setStatus("success");
+        } else {
+          setStatus("error");
+        }
+      } catch {
+        setStatus("error");
+      }
+    };
+
+    submit();
+  }, [answers]);
+
+  return (
+    <div
+      className="screen-fade-in"
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "100vh",
+        padding: "1.5rem",
+        position: "relative",
+        zIndex: 10,
+      }}
+    >
       <div
+        className="glass-card-glow"
         style={{
-          position: "fixed",
-          bottom: "2.5rem",
-          left: "50%",
-          transform: "translateX(-50%)",
-          zIndex: 20,
+          maxWidth: 560,
+          width: "100%",
+          padding: "3rem 2.5rem",
+          textAlign: "center",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "1.8rem",
         }}
       >
-        <button
-          type="button"
-          data-ocid="question.primary_button"
-          className="btn-glow"
-          onClick={handleNext}
-          disabled={isTransitioning}
-          style={{
-            padding: "0.9rem 2.5rem",
-            fontSize: "1.05rem",
-            fontWeight: 600,
-            letterSpacing: "0.04em",
-            opacity: isTransitioning ? 0.7 : 1,
-            transition: "opacity 0.2s ease, transform 0.2s ease",
-          }}
-          aria-label={
-            questionIndex === QUESTIONS.length - 1
-              ? "Finish journey"
-              : "Next question"
-          }
-        >
-          {questionIndex === QUESTIONS.length - 1 ? "Finish 💕" : "Next ➡️"}
-        </button>
+        {status === "submitting" && (
+          <>
+            <div style={{ fontSize: "2.5rem" }} className="float-gentle">
+              💌
+            </div>
+            <p
+              className="font-playfair text-glow-pink"
+              style={{
+                fontSize: "clamp(1.1rem, 3vw, 1.3rem)",
+                color: "#fce7f3",
+                lineHeight: 1.7,
+                fontStyle: "italic",
+              }}
+            >
+              Sending your memories...
+            </p>
+            <div
+              data-ocid="submission.loading_state"
+              style={{
+                width: "48px",
+                height: "48px",
+                border: "3px solid rgba(236,72,153,0.3)",
+                borderTop: "3px solid #ec4899",
+                borderRadius: "50%",
+                animation: "spin 1s linear infinite",
+              }}
+            />
+          </>
+        )}
+
+        {status === "success" && (
+          <>
+            <div style={{ fontSize: "3rem" }}>❤️</div>
+            <p
+              data-ocid="submission.success_state"
+              className="font-playfair text-glow-pink"
+              style={{
+                fontSize: "clamp(1.1rem, 3.5vw, 1.4rem)",
+                color: "#fce7f3",
+                lineHeight: 1.8,
+                fontStyle: "italic",
+              }}
+            >
+              Thank you for sharing your memories with your brother ❤️
+            </p>
+            <button
+              type="button"
+              data-ocid="submission.primary_button"
+              className="btn-glow"
+              onClick={onSuccess}
+              style={{
+                padding: "0.9rem 2.2rem",
+                fontSize: "1rem",
+                fontWeight: 600,
+                letterSpacing: "0.04em",
+                marginTop: "0.5rem",
+              }}
+            >
+              See the final surprise 💕
+            </button>
+          </>
+        )}
+
+        {status === "error" && (
+          <>
+            <div style={{ fontSize: "2.5rem" }}>💜</div>
+            <p
+              data-ocid="submission.error_state"
+              className="font-playfair text-glow-pink"
+              style={{
+                fontSize: "clamp(1rem, 3vw, 1.2rem)",
+                color: "#fce7f3",
+                lineHeight: 1.7,
+                fontStyle: "italic",
+              }}
+            >
+              Something went wrong sending your answers. Please try again.
+            </p>
+            <button
+              type="button"
+              data-ocid="submission.secondary_button"
+              className="btn-glow"
+              onClick={onSuccess}
+              style={{
+                padding: "0.85rem 2rem",
+                fontSize: "0.95rem",
+                fontWeight: 600,
+                letterSpacing: "0.04em",
+              }}
+            >
+              Continue anyway 💕
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
@@ -1136,15 +796,46 @@ you will always be my forever sister.
 And I will always be the luckiest brother alive.`;
 
 function Screen3({ onRestart }: Screen3Props) {
-  const finalHearts = Array.from({ length: 14 }, (_, i) => ({
-    id: i + 1,
-    emoji: ["❤️", "💕", "💜", "🩷"][i % 4],
-    left: Math.round((i / 14) * 90 + 5),
-    size: 16 + (i % 4) * 4,
-    duration: 8 + (i % 5) * 2,
-    delay: i * 0.7,
-    bottom: Math.round((i % 5) * 10),
-  }));
+  // 5 hearts — one per emoji type, simple fixed positions, lightweight
+  const finalHearts = [
+    { id: 1, emoji: "❤️", left: 10, size: 20, duration: 9, delay: 0, bottom: 0 },
+    {
+      id: 2,
+      emoji: "💕",
+      left: 25,
+      size: 18,
+      duration: 11,
+      delay: 2,
+      bottom: 5,
+    },
+    {
+      id: 3,
+      emoji: "💜",
+      left: 50,
+      size: 22,
+      duration: 10,
+      delay: 1,
+      bottom: 0,
+    },
+    {
+      id: 4,
+      emoji: "🩷",
+      left: 70,
+      size: 18,
+      duration: 9,
+      delay: 3,
+      bottom: 8,
+    },
+    {
+      id: 5,
+      emoji: "🫶",
+      left: 88,
+      size: 20,
+      duration: 12,
+      delay: 0.5,
+      bottom: 3,
+    },
+  ];
 
   return (
     <div
@@ -1162,34 +853,22 @@ function Screen3({ onRestart }: Screen3Props) {
           position: "fixed",
           inset: 0,
           backgroundImage:
-            "url('/assets/uploads/Screenshot_20260306_021018-1.jpg')",
+            "url('/assets/uploads/Screenshot_20260306_021018-1-1.jpg')",
           backgroundSize: "cover",
-          backgroundPosition: "center",
+          backgroundPosition: "center center",
           backgroundRepeat: "no-repeat",
           zIndex: 1,
         }}
         aria-hidden="true"
       />
 
-      {/* Dark overlay */}
+      {/* Light overlay — just enough for text readability without hiding the photo */}
       <div
         style={{
           position: "fixed",
           inset: 0,
-          background: "rgba(0,0,0,0.52)",
+          background: "rgba(0, 0, 0, 0.25)",
           zIndex: 2,
-        }}
-        aria-hidden="true"
-      />
-
-      {/* Gradient overlay for text readability */}
-      <div
-        style={{
-          position: "fixed",
-          inset: 0,
-          background:
-            "radial-gradient(ellipse 70% 80% at 50% 50%, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.45) 100%)",
-          zIndex: 3,
         }}
         aria-hidden="true"
       />
@@ -1208,7 +887,7 @@ function Screen3({ onRestart }: Screen3Props) {
         {finalHearts.map((h) => (
           <div
             key={h.id}
-            className="float-heart"
+            className="float-heart-final"
             style={
               {
                 position: "absolute",
@@ -1217,7 +896,6 @@ function Screen3({ onRestart }: Screen3Props) {
                 fontSize: `${h.size}px`,
                 "--duration": `${h.duration}s`,
                 "--delay": `${h.delay}s`,
-                filter: "drop-shadow(0 0 6px rgba(249,168,212,0.8))",
               } as React.CSSProperties
             }
           >
@@ -1244,14 +922,14 @@ function Screen3({ onRestart }: Screen3Props) {
             maxWidth: 680,
             width: "100%",
             textAlign: "center",
-            animation: "fade-in 1.2s ease 0.5s both",
+            animation: "fade-in 1.2s ease 0.3s both",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             gap: "2rem",
           }}
         >
-          {/* Top sparkle */}
+          {/* Top sparkle row */}
           <div style={{ fontSize: "2rem", display: "flex", gap: "0.6rem" }}>
             <span className="float-gentle" style={{ animationDelay: "0s" }}>
               💕
@@ -1267,33 +945,30 @@ function Screen3({ onRestart }: Screen3Props) {
           {/* Main emotional message */}
           <div
             style={{
-              backdropFilter: "blur(28px) saturate(140%)",
-              WebkitBackdropFilter: "blur(28px) saturate(140%)",
-              /* Deep glass that picks up the photo warmth beneath */
+              backdropFilter: "blur(16px) saturate(130%)",
+              WebkitBackdropFilter: "blur(16px) saturate(130%)",
               background:
-                "linear-gradient(160deg, rgba(30,10,40,0.55) 0%, rgba(10,5,20,0.62) 50%, rgba(30,10,50,0.5) 100%)",
+                "linear-gradient(160deg, rgba(30,10,40,0.45) 0%, rgba(10,5,20,0.5) 50%, rgba(30,10,50,0.4) 100%)",
               borderTop: "1px solid rgba(255,255,255,0.22)",
               borderLeft: "1px solid rgba(249,168,212,0.18)",
               borderRight: "1px solid rgba(196,181,253,0.12)",
               borderBottom: "1px solid rgba(168,85,247,0.08)",
               borderRadius: "28px",
-              padding: "3.5rem 2.5rem",
+              padding: "3rem 2.5rem",
               boxShadow: [
-                "0 32px 80px rgba(0,0,0,0.65)",
-                "0 8px 24px rgba(0,0,0,0.5)",
-                "0 0 80px rgba(236,72,153,0.2)",
-                "0 0 160px rgba(168,85,247,0.12)",
+                "0 32px 80px rgba(0,0,0,0.4)",
+                "0 8px 24px rgba(0,0,0,0.3)",
+                "0 0 80px rgba(236,72,153,0.15)",
                 "inset 0 2px 0 rgba(255,255,255,0.2)",
                 "inset 0 -1px 0 rgba(196,181,253,0.1)",
               ].join(", "),
             }}
           >
-            {/* Wrapper handles fade-in; inner p handles the persistent glow pulse */}
-            <div style={{ animation: "fade-in 1.5s ease 1s both" }}>
+            <div style={{ animation: "fade-in 1.5s ease 0.8s both" }}>
               <p
                 className="font-playfair text-glow-white"
                 style={{
-                  fontSize: "clamp(1rem, 2.8vw, 1.25rem)",
+                  fontSize: "clamp(1rem, 2.8vw, 1.22rem)",
                   color: "#fff",
                   lineHeight: 2,
                   fontStyle: "italic",
@@ -1309,7 +984,7 @@ function Screen3({ onRestart }: Screen3Props) {
           {/* Signature */}
           <div
             style={{
-              animation: "fade-in 1s ease 2.5s both",
+              animation: "fade-in 1s ease 2.2s both",
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
@@ -1346,7 +1021,7 @@ function Screen3({ onRestart }: Screen3Props) {
             onClick={onRestart}
             className="font-inter"
             style={{
-              animation: "fade-in 0.8s ease 3.5s both",
+              animation: "fade-in 0.8s ease 3.2s both",
               background: "rgba(255,255,255,0.08)",
               border: "1px solid rgba(249,168,212,0.3)",
               borderRadius: "9999px",
@@ -1412,6 +1087,50 @@ export default function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [visibleScreen, setVisibleScreen] = useState<Screen>(0);
+  const [musicStarted, setMusicStarted] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [collectedAnswers, setCollectedAnswers] = useState<string[]>([]);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Initialize audio
+  useEffect(() => {
+    const audio = new Audio(
+      "/assets/Sai%20Pallavi's%20Intro%20(From%20Amaran)%20(1).mp3",
+    );
+    audio.loop = true;
+    audio.volume = 0.35;
+    audioRef.current = audio;
+    return () => {
+      audio.pause();
+      audio.src = "";
+    };
+  }, []);
+
+  const startMusic = useCallback(() => {
+    if (!audioRef.current) return;
+    audioRef.current
+      .play()
+      .then(() => {
+        setIsPlaying(true);
+        setMusicStarted(true);
+      })
+      .catch(() => {
+        // Autoplay blocked — will retry on next user interaction
+      });
+  }, []);
+
+  const toggleMusic = useCallback(() => {
+    if (!audioRef.current) return;
+    if (isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      audioRef.current
+        .play()
+        .then(() => setIsPlaying(true))
+        .catch(() => {});
+    }
+  }, [isPlaying]);
 
   const transitionTo = useCallback(
     (nextScreen: Screen) => {
@@ -1427,9 +1146,20 @@ export default function App() {
     [isTransitioning],
   );
 
-  const handleScreen0Next = useCallback(() => transitionTo(1), [transitionTo]);
+  const handleScreen0Next = useCallback(() => {
+    startMusic();
+    transitionTo(1);
+  }, [transitionTo, startMusic]);
+
   const handleScreen1Next = useCallback(() => transitionTo(2), [transitionTo]);
   const handleScreen2Finish = useCallback(
+    (answers: string[]) => {
+      setCollectedAnswers(answers);
+      transitionTo(4);
+    },
+    [transitionTo],
+  );
+  const handleSubmissionSuccess = useCallback(
     () => transitionTo(3),
     [transitionTo],
   );
@@ -1437,15 +1167,12 @@ export default function App() {
     setCurrentScreen(0);
     setVisibleScreen(0);
     setIsTransitioning(false);
+    setCollectedAnswers([]);
   }, []);
 
   return (
     <div
-      style={{
-        position: "relative",
-        minHeight: "100vh",
-        overflow: "hidden",
-      }}
+      style={{ position: "relative", minHeight: "100vh", overflow: "hidden" }}
     >
       {/* Always-on background */}
       <BackgroundLayer />
@@ -1468,9 +1195,22 @@ export default function App() {
             />
           )}
           {visibleScreen === 2 && <Screen2 onFinish={handleScreen2Finish} />}
+          {visibleScreen === 4 && (
+            <Screen4
+              answers={collectedAnswers}
+              onSuccess={handleSubmissionSuccess}
+            />
+          )}
           {visibleScreen === 3 && <Screen3 onRestart={handleRestart} />}
         </ScreenTransition>
       </div>
+
+      {/* Floating music control button */}
+      <MusicButton
+        isPlaying={isPlaying}
+        onToggle={toggleMusic}
+        visible={musicStarted}
+      />
 
       {/* Footer */}
       <footer
@@ -1481,8 +1221,13 @@ export default function App() {
           transform: "translateX(-50%)",
           zIndex: 100,
           pointerEvents:
-            currentScreen === 2 || currentScreen === 3 ? "none" : "auto",
-          opacity: currentScreen === 2 || currentScreen === 3 ? 0 : 0.4,
+            currentScreen === 2 || currentScreen === 3 || currentScreen === 4
+              ? "none"
+              : "auto",
+          opacity:
+            currentScreen === 2 || currentScreen === 3 || currentScreen === 4
+              ? 0
+              : 0.4,
           transition: "opacity 0.5s ease",
         }}
       >
